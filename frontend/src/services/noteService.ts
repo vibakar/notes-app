@@ -9,7 +9,7 @@ export interface Note {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const axiosInstance = axios.create({
-  baseURL: `${API_BASE_URL}/notes`,
+  baseURL: `${API_BASE_URL}/api/v1/notes`,
 });
 
 export const fetchNotes = async (): Promise<Note[]> => {

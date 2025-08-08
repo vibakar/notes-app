@@ -10,8 +10,7 @@ const app = express();
 
 const yamlPath = path.join(__dirname, "../swagger.yaml");
 const swaggerDocument = yaml.load(fs.readFileSync(yamlPath, "utf8")) as object;
-const allowedOrigins = process.env.CORS_ALLOWED_ORIGIN || ["*"];
-console.log("allowedOrigins ->>>", allowedOrigins);
+const allowedOrigins = process.env.CORS_ALLOWED_ORIGIN || "*";
 app.use(
   cors({
     origin: allowedOrigins,

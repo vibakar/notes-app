@@ -7,21 +7,24 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 
-### STAGE 2: Run the app in development mode ###
-FROM setup AS development
+### STAGE 2: Run the app in dev mode ###
+FROM setup AS dev
 CMD ["npm", "run", "dev"]
 
-### STAGE 3: Build the app for production ###
+### STAGE 3: Build the app for prod ###
 FROM setup AS build
 RUN npm run build
 
-### STAGE 4: Serve the production app with a busybox web server ###
-FROM busybox:latest
+### STAGE 4: Serve the prod app with Nginx ###
+FROM nginx:stable-alpine AS prod
 
-RUN adduser -D public
-USER public
-WORKDIR /public
+# Optional: remove the default Nginx website
+RUN rm -rf /usr/share/nginx/html/*
 
-COPY --from=build /app/dist /public
+# Copy built files from the previous stage
+COPY --from=build /app/dist /usr/share/nginx/html
 
-CMD ["busybox", "httpd", "-f", "-v", "-p", "5173"]
+# Expose port 80 (default for Nginx)
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

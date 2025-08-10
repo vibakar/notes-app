@@ -19,6 +19,11 @@ git clone https://github.com/vibakar/fullstack-app.git
 cd fullstack-app
 ```
 
+### Update .env file
+Before starting the app, copy the example environment file and update it with your configuration
+
+```cp .env.example .env```
+
 ### Start All Services
 ```docker-compose up --build```
 

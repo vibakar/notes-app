@@ -2,9 +2,9 @@
 
 set -e
 
-APP_DIR="/home/ec2-user/notes-app"
-FRONTEND_DIR="$APP_DIR/frontend"
-BACKEND_DIR="$APP_DIR/backend"
+APP_DIR="/home/ec2-user"
+FRONTEND_DIR="$APP_DIR/notes-app/frontend"
+BACKEND_DIR="$APP_DIR/notes-app/backend"
 BACKEND_PORT="3000"
 NGINX_HTML_DIR="/usr/share/nginx/html"
 POSTGRES_USERNAME="postgres"
@@ -68,6 +68,7 @@ EOF
 
 clone_repo() {
   echo "Cloning notes app repository..."
+  cd ${APP_DIR}
   git clone https://github.com/vibakar/notes-app.git
 }
 

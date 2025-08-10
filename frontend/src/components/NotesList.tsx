@@ -110,10 +110,11 @@ const NotesList: React.FC = () => {
   return (
     <>
       <Snackbar
+        autoHideDuration={5000}
         open={snackbar.open}
+        onClose={handleSnackbarClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
           <Alert
-            onClose={handleSnackbarClose}
             severity={snackbar.severity}
             variant="filled"
             sx={{ width: '100%' }}

@@ -1,4 +1,4 @@
-# Full-Stack Notes App – Dockerized Setup
+# Notes Notes App – Dockerized Setup
 
 This project includes a **React frontend**, **Node.js backend**, and **PostgreSQL database**, all containerized using Docker Compose.
 
@@ -15,8 +15,8 @@ This project includes a **React frontend**, **Node.js backend**, and **PostgreSQ
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/vibakar/fullstack-app.git
-cd fullstack-app
+git clone https://github.com/vibakar/notes-app.git
+cd notes-app
 ```
 
 ### Update .env file

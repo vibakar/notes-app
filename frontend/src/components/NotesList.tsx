@@ -11,54 +11,92 @@ import {
   CircularProgress,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import Alert from '@mui/material/Alert';
 import DeleteIcon from "@mui/icons-material/Delete";
+import Snackbar from '@mui/material/Snackbar';
+
 import AddNote from "./AddNote";
 import { fetchNotes, deleteNote, createNote } from "../services/noteService";
+import type { AlertColor } from '@mui/material/Alert';
 import type { Note } from "../services/noteService";
+
+interface SnackbarState {
+  open: boolean;
+  severity: AlertColor;
+  message: string;
+}
 
 const NotesList: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [snackbar, setSnackbar] = useState<SnackbarState>({open: false, severity: "success", message: ""})
   const [openModal, setOpenModal] = useState(false);
-
   const handleOpen = () => setOpenModal(true);
   const handleClose = () => setOpenModal(false);
 
   useEffect(() => {
-    const loadNotes = async () => {
-      try {
-        const data = await fetchNotes();
-        setNotes(data);
-      } catch (err) {
-        console.error("Failed to fetch notes:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadNotes();
+    getAllNotes();
   }, []);
+
+  const getAllNotes = async () => {
+    try {
+      const data = await fetchNotes();
+      setNotes(data);
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        severity: "error",
+        message: "Failed to fetch Notes!"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     try {
       await deleteNote(id);
       setNotes((prevNotes) => prevNotes.filter((note) => note.id !== id));
+      setSnackbar({
+        open: true,
+        severity: "success",
+        message: "Note deleted successfully"
+      });
     } catch (error) {
-      console.error("Failed to delete note:", error);
+      setSnackbar({
+        open: true,
+        severity: "error",
+        message: "Failed to delete note"
+      });
     }
   };
 
   const handleCreate = async (note: { title: string; content: string }) => {
     try {
       await createNote(note);
-      const data = await fetchNotes();
-      setNotes(data);
+      setSnackbar({
+        open: true,
+        severity: "success",
+        message: "Note added successfully"
+      });
+      getAllNotes()
     } catch (err) {
-      console.error("Error creating note", err);
+      setSnackbar({
+        open: true,
+        severity: "error",
+        message: "Failed to create note"
+      });
     } finally {
       handleClose();
     }
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbar({
+      open: false,
+      severity: "success",
+      message: ""
+    });
   };
 
   if (loading) {
@@ -71,6 +109,18 @@ const NotesList: React.FC = () => {
 
   return (
     <>
+      <Snackbar
+        open={snackbar.open}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Alert
+            onClose={handleSnackbarClose}
+            severity={snackbar.severity}
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            {snackbar.message}
+          </Alert>
+      </Snackbar>
       {notes.length > 0 ? (
         <Container className="card-container">
           <div className="card-add-container">

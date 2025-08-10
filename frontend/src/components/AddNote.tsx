@@ -1,4 +1,3 @@
-import * as React from "react";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import TextareaAutosize from "@mui/material/TextareaAutosize";
@@ -6,20 +5,22 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import React from "react";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: { title: string; content: string }) => void;
+  onSubmit: (data: {title: string, content: string}) => Promise<void> | void;
 };
 
 const CreateNoteModal = ({ open, onClose, onSubmit }: Props) => {
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget as HTMLFormElement);
     const title = form.get("title") as string;
     const content = form.get("content") as string;
-    onSubmit({ title, content });
+      await onSubmit({title, content});
   };
 
   return (

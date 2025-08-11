@@ -14,32 +14,32 @@ SERVER_IP=$(curl -s http://checkip.amazonaws.com)
 
 install_tools() {
   echo "Installing tools: git, nginx, nodejs..."
-  sudo dnf install -y git nginx
+  dnf install -y git nginx
 
   # Enable and start nginx
-  sudo systemctl enable nginx
-  sudo systemctl start nginx
+  systemctl enable nginx
+  systemctl start nginx
 
   # Clear nginx default html directory
-  sudo rm -rf ${NGINX_HTML_DIR}/*
+  rm -rf ${NGINX_HTML_DIR}/*
 
   # Install Node.js 20
   curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
-  sudo dnf install -y nodejs
+  dnf install -y nodejs
 }
 
 setup_postgres() {
   echo "Setting up PostgreSQL 15..."
 
-  sudo dnf install -y postgresql15 postgresql15-server
+  dnf install -y postgresql15 postgresql15-server
 
-  sudo mkdir -p /var/lib/pgsql/15/data
-  sudo chown -R postgres:postgres /var/lib/pgsql
+  mkdir -p /var/lib/pgsql/15/data
+  chown -R postgres:postgres /var/lib/pgsql
 
   sudo -u postgres /usr/bin/initdb -D /var/lib/pgsql/15/data
 
   echo "Creating systemd service for PostgreSQL..."
-  sudo tee /etc/systemd/system/postgresql-custom.service > /dev/null <<EOF
+  tee /etc/systemd/system/postgresql-custom.service > /dev/null <<EOF
 [Unit]
 Description=PostgreSQL Custom
 After=network.target
@@ -56,9 +56,9 @@ PIDFile=/var/lib/pgsql/15/data/postmaster.pid
 WantedBy=multi-user.target
 EOF
 
-  sudo systemctl daemon-reexec
-  sudo systemctl daemon-reload
-  sudo systemctl enable --now postgresql-custom
+  systemctl daemon-reexec
+  systemctl daemon-reload
+  systemctl enable --now postgresql-custom
 
   echo "Setting password for postgres user..."
   sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '${POSTGRES_PASSWORD}';"
@@ -81,10 +81,10 @@ setup_frontend() {
   npm run build
 
   echo "Copying frontend build to NGINX directory..."
-  sudo cp -r dist/* $NGINX_HTML_DIR/
+  cp -r dist/* $NGINX_HTML_DIR/
   
   echo "Restarting nginx..."
-  sudo systemctl restart nginx
+  systemctl restart nginx
 }
 
 setup_backend() {

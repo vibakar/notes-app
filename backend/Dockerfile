@@ -1,5 +1,5 @@
 ### STAGE 1: Setup the environment & install dependencies ###
-FROM node:24.4.0-bullseye-slim as setup
+FROM node:24.4.0-bullseye-slim AS setup
 
 RUN useradd -m app
 
@@ -16,6 +16,7 @@ RUN chown -R app:app /app
 USER app
 
 EXPOSE 3000
+
 ### STAGE 2: Run the app in development mode ###
 FROM setup AS dev
 CMD ["npm", "run", "dev"]

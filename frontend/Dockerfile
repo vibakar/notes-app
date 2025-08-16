@@ -18,7 +18,7 @@ RUN npm run build
 ### STAGE 4: Serve the prod app with Nginx ###
 FROM nginx:stable-alpine AS prod
 
-# Optional: remove the default Nginx website
+# remove the default Nginx website
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy built files from the previous stage

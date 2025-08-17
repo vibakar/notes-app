@@ -1,11 +1,12 @@
 import express from "express";
 import cors from "cors";
-import noteRoutes from "./routes/note.route";
-import { errorMiddleware } from "./middlewares/error.middleware";
 import swaggerUi from "swagger-ui-express";
 import * as fs from "fs";
 import * as path from "path";
 import yaml from "js-yaml";
+import noteRoutes from "./routes/note.route";
+import healthRoutes from "./routes/health.route";
+import { errorMiddleware } from "./middlewares/error.middleware";
 
 const app = express();
 
@@ -23,5 +24,6 @@ app.use(express.json());
 app.use(errorMiddleware);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api/v1/notes", noteRoutes);
+app.use("/api/v1/health", healthRoutes);
 
 export default app;

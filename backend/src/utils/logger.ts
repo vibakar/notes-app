@@ -19,7 +19,7 @@ const getCallerFile = (): string => {
 const baseLogger = pino({
   level: process.env.LOG_LEVEL || 'debug',
   transport:
-    process.env.NODE_ENV !== 'production'
+    process.env.NODE_ENV !== 'prod'
       ? {
           target: 'pino-pretty',
           options: {

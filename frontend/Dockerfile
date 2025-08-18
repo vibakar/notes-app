@@ -24,7 +24,11 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy built files from the previous stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
+# Copy start.sh into image
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
+
 # Expose port 80 (default for Nginx)
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["./start.sh"]

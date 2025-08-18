@@ -1,6 +1,7 @@
-import { PrismaClient, Note } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { HttpException } from "../exceptions/HttpException";
 import logger from "../utils/logger";
+import { Note } from "../interfaces/note.interface"
 
 const prisma = new PrismaClient();
 

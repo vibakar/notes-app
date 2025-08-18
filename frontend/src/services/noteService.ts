@@ -1,4 +1,5 @@
 import axios from "axios";
+import { config } from "../config";
 
 export interface Note {
   id: string;
@@ -6,10 +7,9 @@ export interface Note {
   content: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
+console.log(`heloo--->>>>>>> ${config.VITE_API_BASE_URL}`)
 const axiosInstance = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1/notes`,
+  baseURL: `${config.VITE_API_BASE_URL}/api/v1/notes`,
 });
 
 export const fetchNotes = async (): Promise<Note[]> => {

@@ -82,7 +82,8 @@ setup_frontend() {
 
   echo "Copying frontend build to NGINX directory..."
   cp -r dist/* $NGINX_HTML_DIR/
-  
+  envsubst < ${NGINX_HTML_DIR}/runtime-config.template.js > ${NGINX_HTML_DIR}/runtime-config.js
+
   echo "Restarting nginx..."
   systemctl restart nginx
 }

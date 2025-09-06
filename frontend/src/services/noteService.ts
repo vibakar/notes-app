@@ -7,7 +7,6 @@ export interface Note {
   content: string;
 }
 
-console.log(`heloo--->>>>>>> ${config.VITE_API_BASE_URL}`)
 const axiosInstance = axios.create({
   baseURL: `${config.VITE_API_BASE_URL}/api/v1/notes`,
 });

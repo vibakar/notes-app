@@ -60,6 +60,17 @@ EOF
   systemctl daemon-reload
   systemctl enable --now postgresql-custom
 
+  echo "Configuring PostgreSQL for remote access..."
+
+  # Update postgresql.conf: listen_addresses = '*'
+  sed -i "s/^#listen_addresses = 'localhost'/listen_addresses = '*'/" /var/lib/pgsql/15/data/postgresql.conf
+
+  # Add a line to pg_hba.conf to allow remote connections (from any IP)
+  echo "host    all             all             0.0.0.0/0               md5" >> /var/lib/pgsql/15/data/pg_hba.conf
+
+  # Restart to apply changes
+  systemctl restart postgresql-custom
+  
   echo "Setting password for postgres user..."
   sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '${POSTGRES_PASSWORD}';"
 

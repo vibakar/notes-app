@@ -23,18 +23,18 @@ jobs:
         run: |
           rsync -avz --delete \
             -e "ssh -o StrictHostKeyChecking=no" \
-            ./ ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/
+            ./ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/app/
 
       - name: Run Deployment Script on EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
 
             NGINX_HTML_DIR="/usr/share/nginx/html"
             SERVER_IP=$(curl -s http://checkip.amazonaws.com)
             BACKEND_PORT="3000"
 
             # Navigate to app directory
-            cd /home/ubuntu/app
+            cd /home/ec2-user/app
 
             # Install backend dependencies
             cd backend

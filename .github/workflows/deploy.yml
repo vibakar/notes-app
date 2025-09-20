@@ -53,7 +53,7 @@ jobs:
             echo "Copying frontend build to NGINX directory..."
             sudo cp -r dist/* $NGINX_HTML_DIR/
             export VITE_API_BASE_URL="http://${SERVER_IP}:${BACKEND_PORT}"
-            sudo envsubst < ${NGINX_HTML_DIR}/runtime-config.template.js > ${NGINX_HTML_DIR}/runtime-config.js
+            sudo envsubst < ${NGINX_HTML_DIR}/runtime-config.template.js | sudo tee ${NGINX_HTML_DIR}/runtime-config.js > /dev/null
 
             echo "Restarting nginx..."
             sudo systemctl restart nginx

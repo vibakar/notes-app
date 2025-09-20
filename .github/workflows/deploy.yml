@@ -1,0 +1,60 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Copy Files to EC2
+        run: |
+          rsync -avz --delete \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            ./ ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/
+
+      - name: Run Deployment Script on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+
+            NGINX_HTML_DIR="/usr/share/nginx/html"
+            SERVER_IP=$(curl -s http://checkip.amazonaws.com)
+            BACKEND_PORT="3000"
+
+            # Navigate to app directory
+            cd /home/ubuntu/app
+
+            # Install backend dependencies
+            cd backend
+            npm install
+            export CORS_ALLOWED_ORIGIN="*"
+            export DATABASE_URL="postgresql://${secrets.POSTGRES_USERNAME}:${secrets.POSTGRES_PASSWORD}@127.0.0.1:5432/${secrets.POSTGRES_DATABASE}"
+            npm run build
+            echo "Starting backend server in background..."
+            nohup npm start > output.log 2>&1 &
+
+            # Build frontend
+            cd ../frontend
+            npm install
+            npm run build
+
+            echo "Copying frontend build to NGINX directory..."
+            cp -r dist/* $NGINX_HTML_DIR/
+            export VITE_API_BASE_URL="http://${SERVER_IP}:${BACKEND_PORT}"
+            envsubst < ${NGINX_HTML_DIR}/runtime-config.template.js > ${NGINX_HTML_DIR}/runtime-config.js
+
+            echo "Restarting nginx..."
+            systemctl restart nginx
+          EOF

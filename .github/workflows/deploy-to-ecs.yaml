@@ -1,4 +1,4 @@
-name: Terraform ECS Deploy
+name: Deploy to ECS
 
 on:
   workflow_dispatch: {}

@@ -8,8 +8,8 @@ resource "aws_codedeploy_deployment_group" "frontend" {
   deployment_group_name  = "frontend-bluegreen-dg"
   service_role_arn       = aws_iam_role.codedeploy_role.arn
 
-  # deployment_config_name = "CodeDeployDefault.ECSAllAtOnce"
-  deployment_config_name = "CodeDeployDefault.ECSLinear10PercentEvery1Minute"
+  deployment_config_name = "CodeDeployDefault.ECSAllAtOnce"
+  # deployment_config_name = "CodeDeployDefault.ECSLinear10PercentEvery1Minute"
 
   deployment_style {
     deployment_option = "WITH_TRAFFIC_CONTROL"

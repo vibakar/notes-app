@@ -7,8 +7,8 @@ on:
   #     - main # or change to any branch you want
 
 jobs:
-  terraform:
-    name: Run Terraform in infra/ecs
+  deploy:
+    name: Deploy app in ecs
     runs-on: ubuntu-latest
 
     defaults:

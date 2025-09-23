@@ -1,0 +1,35 @@
+name: Deploy to ECS via CodeDeploy
+
+on:
+  workflow_dispatch: {}
+  # push:
+  #   branches:
+  # - main # or your release branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'eu-west-2' }}
+
+      - name: Upload AppSpec and TaskDef to S3
+        run: |
+          aws s3 cp appspec.yaml s3://artefacts-648378716943/appspec.yaml
+
+      - name: Trigger CodeDeploy Deployment
+        run: |
+          aws deploy create-deployment \
+            --application-name notes-app-frontend \
+            --deployment-group-name frontend-bluegreen-dg \
+            --s3-location bucket=artefacts-648378716943,bundleType=YAML,key=appspec.yaml \
+            --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
+            --description "Triggered by GitHub Actions"

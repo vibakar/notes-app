@@ -9,8 +9,8 @@ resource "aws_ecs_task_definition" "database" {
   cpu                      = "256"
   memory                   = "512"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
-  task_role_arn            = aws_iam_role.ecs_task_execution_role.arn  
-  
+  task_role_arn            = aws_iam_role.ecs_task_execution_role.arn
+
   container_definitions = jsonencode([{
     name         = "postgres"
     image        = "postgres:latest"
@@ -28,11 +28,11 @@ resource "aws_ecs_task_definition" "backend" {
   cpu                      = "256"
   memory                   = "512"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
-  task_role_arn            = aws_iam_role.ecs_task_execution_role.arn  
+  task_role_arn            = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([{
     name         = "backend"
-    image        = "vibakar/notes-app-backend:latest"
+    image        = var.backend_image
     portMappings = [{
       containerPort = 3000
     }]
@@ -55,11 +55,11 @@ resource "aws_ecs_task_definition" "frontend" {
   cpu                      = "256"
   memory                   = "512"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
-  task_role_arn            = aws_iam_role.ecs_task_execution_role.arn  
+  task_role_arn            = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([{
     name         = "frontend"
-    image        = "vibakar/notes-app-frontend:latest"
+    image        = var.frontend_image
     portMappings = [{
       containerPort = 80
     }]
@@ -92,6 +92,14 @@ resource "aws_security_group" "alb_sg" {
     description = "HTTP from anywhere"
     from_port   = 3000
     to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTP from anywhere"
+    from_port   = 9000
+    to_port     = 9000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -150,8 +158,26 @@ resource "aws_lb" "app_alb" {
   subnets            = module.vpc.public_subnets
 }
 
-resource "aws_lb_target_group" "frontend_tg" {
-  name     = "frontend-tg"
+resource "aws_lb_target_group" "frontend_blue_tg" {
+  name     = "frontend-blue-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = module.vpc.vpc_id
+
+  health_check {
+    path                = "/"
+    matcher             = "200"
+    interval            = 30
+    unhealthy_threshold = 2
+    healthy_threshold   = 5
+    timeout             = 5
+  }
+
+  target_type = "ip"
+}
+
+resource "aws_lb_target_group" "frontend_green_tg" {
+  name     = "frontend-green-tg"
   port     = 80
   protocol = "HTTP"
   vpc_id   = module.vpc.vpc_id
@@ -186,14 +212,25 @@ resource "aws_lb_target_group" "backend_tg" {
   target_type = "ip"
 }
 
-resource "aws_lb_listener" "frontend" {
+resource "aws_lb_listener" "frontend_blue" {
   load_balancer_arn = aws_lb.app_alb.arn
   port              = 80
   protocol          = "HTTP"
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.frontend_tg.arn
+    target_group_arn = aws_lb_target_group.frontend_blue_tg.arn
+  }
+}
+
+resource "aws_lb_listener" "frontend_green" {
+  load_balancer_arn = aws_lb.app_alb.arn
+  port              = 9000
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend_green_tg.arn
   }
 }
 
@@ -216,6 +253,10 @@ resource "aws_ecs_service" "frontend" {
   launch_type     = "FARGATE"
   enable_execute_command = true
 
+  deployment_controller {
+    type = "CODE_DEPLOY"
+  }
+
   network_configuration {
     subnets         = module.vpc.private_subnets
     security_groups = [aws_security_group.ecs_sg.id]
@@ -223,12 +264,14 @@ resource "aws_ecs_service" "frontend" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.frontend_tg.arn
+    target_group_arn = aws_lb_target_group.frontend_blue_tg.arn
     container_name   = "frontend"
     container_port   = 80
   }
 
-  depends_on = [aws_lb_listener.frontend]
+  propagate_tags = "SERVICE"
+
+  depends_on = [aws_lb_listener.frontend_blue]
 }
 
 resource "aws_ecs_service" "backend" {

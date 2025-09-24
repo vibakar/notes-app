@@ -1,11 +1,14 @@
-name: ECS Destroy
+name: Provision ECS Infra
 
 on:
   workflow_dispatch: {}
+  # push:
+  #   branches:
+  #     - main # or change to any branch you want
 
 jobs:
-  destroy:
-    name: Destroy ECS
+  deploy:
+    name: Deploy app in ecs
     runs-on: ubuntu-latest
 
     defaults:
@@ -31,5 +34,8 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Terraform Destroy (auto-approve)
-        run: terraform destroy -auto-approve
+      - name: Terraform Plan
+        run: terraform plan
+
+      - name: Terraform Apply (auto-approve)
+        run: terraform apply -auto-approve

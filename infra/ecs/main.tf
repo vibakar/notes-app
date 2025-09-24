@@ -219,11 +219,10 @@ resource "aws_lb_listener" "frontend" {
 
   default_action {
     type = "fixed-response"
-
     fixed_response {
       content_type = "text/plain"
-      message_body = "Invalid host header or no matching rule."
-      status_code  = "404"
+      message_body = "Fixed response content"
+      status_code  = "200"
     }
   }
 }
@@ -237,9 +236,16 @@ resource "aws_lb_listener_rule" "notes_app_prod_rule" {
     target_group_arn = aws_lb_target_group.frontend_blue_tg.arn
   }
 
+
   condition {
     host_header {
       values = ["notes-app.vibakar.com"]
+    }
+  }
+
+  condition {
+    path_pattern {
+      values = ["/*"]
     }
   }
 }
@@ -256,6 +262,12 @@ resource "aws_lb_listener_rule" "notes_app_preview_rule" {
   condition {
     host_header {
       values = ["preview-notes-app.vibakar.com"]
+    }
+  }
+
+  condition {
+    path_pattern {
+      values = ["/*"]
     }
   }
 }

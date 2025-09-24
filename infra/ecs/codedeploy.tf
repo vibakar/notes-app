@@ -32,12 +32,8 @@ resource "aws_codedeploy_deployment_group" "frontend" {
       }
 
       prod_traffic_route {
-        listener_arns = [aws_lb_listener.frontend_blue.arn]
+        listener_arns = [aws_lb_listener.frontend.arn]
       }
-
-      # test_traffic_route {
-      #   listener_arns = [aws_lb_listener.frontend_green.arn]
-      # }
     }
   }
 

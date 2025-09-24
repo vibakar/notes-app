@@ -18,10 +18,6 @@ output "green_tg_arn" {
   value = aws_lb_target_group.frontend_green_tg.arn
 }
 
-output "blue_listener_arn" {
-  value = aws_lb_listener.frontend_blue.arn
-}
-
-output "green_listener_arn" {
-  value = aws_lb_listener.frontend_green.arn
+output "frontend_listener_arn" {
+  value = aws_lb_listener.frontend.arn
 }

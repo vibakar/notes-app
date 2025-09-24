@@ -212,25 +212,51 @@ resource "aws_lb_target_group" "backend_tg" {
   target_type = "ip"
 }
 
-resource "aws_lb_listener" "frontend_blue" {
+resource "aws_lb_listener" "frontend" {
   load_balancer_arn = aws_lb.app_alb.arn
   port              = 80
   protocol          = "HTTP"
 
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.frontend_blue_tg.arn
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "Invalid host header or no matching rule."
+      status_code  = "404"
+    }
   }
 }
 
-resource "aws_lb_listener" "frontend_green" {
-  load_balancer_arn = aws_lb.app_alb.arn
-  port              = 9000
-  protocol          = "HTTP"
+resource "aws_lb_listener_rule" "notes_app_prod_rule" {
+  listener_arn = aws_lb_listener.frontend.arn
+  priority     = 100
 
-  default_action {
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend_blue_tg.arn
+  }
+
+  condition {
+    host_header {
+      values = ["notes-app.vibakar.com"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "notes_app_preview_rule" {
+  listener_arn = aws_lb_listener.frontend.arn
+  priority     = 101
+
+  action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.frontend_green_tg.arn
+  }
+
+  condition {
+    host_header {
+      values = ["preview-notes-app.vibakar.com"]
+    }
   }
 }
 
@@ -271,7 +297,7 @@ resource "aws_ecs_service" "frontend" {
 
   propagate_tags = "SERVICE"
 
-  depends_on = [aws_lb_listener.frontend_blue]
+  depends_on = [aws_lb_listener.frontend]
 }
 
 resource "aws_ecs_service" "backend" {
@@ -340,6 +366,14 @@ resource "aws_ecs_service" "database" {
 resource "aws_route53_record" "alb_cname" {
   zone_id = data.aws_route53_zone.primary.zone_id
   name    = "notes-app.vibakar.com"
+  type    = "CNAME"
+  ttl     = 300
+  records = [aws_lb.app_alb.dns_name]
+}
+
+resource "aws_route53_record" "preview_alb_cname" {
+  zone_id = data.aws_route53_zone.primary.zone_id
+  name    = "preview-notes-app.vibakar.com"
   type    = "CNAME"
   ttl     = 300
   records = [aws_lb.app_alb.dns_name]

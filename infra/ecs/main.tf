@@ -247,6 +247,12 @@ resource "aws_lb_listener_rule" "notes_app_prod_rule" {
       values = ["/*"]
     }
   }
+
+  lifecycle {
+    ignore_changes = [
+      action
+    ]
+  }
 }
 
 resource "aws_lb_listener_rule" "notes_app_preview_rule" {
@@ -268,6 +274,12 @@ resource "aws_lb_listener_rule" "notes_app_preview_rule" {
     path_pattern {
       values = ["/*"]
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      action
+    ]
   }
 }
 
@@ -309,6 +321,10 @@ resource "aws_ecs_service" "frontend" {
   propagate_tags = "SERVICE"
 
   depends_on = [aws_lb_listener.frontend]
+
+  lifecycle {
+    ignore_changes = [task_definition, load_balancer]
+  }
 }
 
 resource "aws_ecs_service" "backend" {

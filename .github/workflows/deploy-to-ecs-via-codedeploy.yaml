@@ -103,6 +103,6 @@ jobs:
           echo "PREVIEW_LISTENER_RULE_ARN: ${PREVIEW_LISTENER_RULE_ARN}"
 
           echo "Update preview listener rule target group to -> ${PREVIEW_TG}"
-          # aws elbv2 modify-rule \
-          # --rule-arn ${PREVIEW_LISTENER_RULE_ARN} \
-          # --actions Type=forward,TargetGroupArn="${PREVIEW_TG}"
+          aws elbv2 modify-rule \
+          --rule-arn ${PREVIEW_LISTENER_RULE_ARN} \
+          --actions Type=forward,TargetGroupArn="${PREVIEW_TG}"

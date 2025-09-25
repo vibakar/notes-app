@@ -1,47 +1,54 @@
 # Get current TGs
-BLUE_TG_ARN="arn:aws:elasticloadbalancing:...:targetgroup/frontend_blue_tg/..."
+ALB_NAME="notes-app-alb"
+BLUE_TARGET_GROUP_NAME="frontend-blue-tg"
+GREEN_TARGET_GROUP_NAME="frontend-green-tg"
+
 ALB_ARN=$(aws elbv2 describe-load-balancers \
-  --names notes-app-alb \
+  --names "${ALB_NAME}" \
   --query "LoadBalancers[0].LoadBalancerArn" \
   --output text)
+echo "ALB_ARN: ${ALB_ARN}"
 
 BLUE_TG_ARN=$(aws elbv2 describe-target-groups \
-  --names frontend-blue-tg \
+  --names "${BLUE_TARGET_GROUP_NAME}" \
   --query 'TargetGroups[0].TargetGroupArn' \
   --output text)
+echo "BLUE_TG_ARN: ${BLUE_TG_ARN}"
 
 GREEN_TG_ARN=$(aws elbv2 describe-target-groups \
-  --names frontend-green-tg \
+  --names "${GREEN_TARGET_GROUP_NAME}" \
   --query 'TargetGroups[0].TargetGroupArn' \
   --output text)
+echo "GREEN_TG_ARN: ${GREEN_TG_ARN}"
 
-PROD_LISTENER_ARN=$(aws elbv2 describe-listeners \
-  --load-balancer-arn arn:aws:elasticloadbalancing:eu-west-2:648378716943:loadbalancer/app/notes-app-alb/fe3e3152cd14b3ac \
+LISTENER_ARN=$(aws elbv2 describe-listeners \
+  --load-balancer-arn "${ALB_ARN}" \
   --query "Listeners[?Port==\`80\`].ListenerArn" \
   --output text)
+echo "LISTENER_ARN: ${LISTENER_ARN}"
 
-TEST_LISTENER_ARN=$(aws elbv2 describe-listeners \
-  --load-balancer-arn arn:aws:elasticloadbalancing:eu-west-2:648378716943:loadbalancer/app/notes-app-alb/fe3e3152cd14b3ac \
-  --query "Listeners[?Port==\`9000\`].ListenerArn" \
+# Determine which TG is currently attached to the prod listener rule
+CURRENT_PROD_RULE_TG_ARN=$(aws elbv2 describe-rules \
+  --listener-arn "${LISTENER_ARN}" \
+  --query "Rules[?Priority=='100'].Actions[0].TargetGroupArn | [0]" \
   --output text)
 
-# Determine which TG is currently attached to the prod listener (port 80)
-CURRENT_PROD_TG=$(aws elbv2 describe-listeners \
-  --listener-arn $PROD_LISTENER_ARN \
-  --query 'Listeners[0].DefaultActions[0].TargetGroupArn' \
-  --output text)
+echo "Current prod target group is -> ${CURRENT_PROD_RULE_TG_ARN}"
 
-echo "Current prod target group is -> ${CURRENT_PROD_TG}"
-
-# Find the "other" (previous) TG
-if [ "$CURRENT_PROD_TG" == "$BLUE_TG_ARN" ]; then
-  PREVIOUS_TG=$GREEN_TG_ARN
+if [ "${CURRENT_PROD_RULE_TG_ARN}" == "${BLUE_TG_ARN}" ]; then
+  PREVIEW_TG=${GREEN_TG_ARN}
 else
-  PREVIOUS_TG=$BLUE_TG_ARN
+  PREVIEW_TG=${BLUE_TG_ARN}
 fi
+echo "PREVIEW_TG: ${PREVIEW_TG}"
 
-echo "Test listener target group is going to be -> ${PREVIOUS_TG}"
-# Update test listener (port 9000) to point to previous TG
-aws elbv2 modify-listener \
-  --listener-arn $TEST_LISTENER_ARN \
-  --default-actions Type=forward,TargetGroupArn=$PREVIOUS_TG
+PREVIEW_LISTENER_RULE_ARN=$(aws elbv2 describe-rules \
+--listener-arn "${LISTENER_ARN}" \
+--query "Rules[?Priority=='101'].RuleArn" \
+--output text)
+echo "PREVIEW_LISTENER_RULE_ARN: ${PREVIEW_LISTENER_RULE_ARN}"
+
+echo "Update preview listener rule target group to -> ${PREVIEW_TG}"
+# aws elbv2 modify-rule \
+# --rule-arn ${PREVIEW_LISTENER_RULE_ARN} \
+# --actions Type=forward,TargetGroupArn="${PREVIEW_TG}"

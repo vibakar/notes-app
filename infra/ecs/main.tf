@@ -236,7 +236,6 @@ resource "aws_lb_listener_rule" "notes_app_prod_rule" {
     target_group_arn = aws_lb_target_group.frontend_blue_tg.arn
   }
 
-
   condition {
     host_header {
       values = ["notes-app.vibakar.com"]
@@ -256,7 +255,7 @@ resource "aws_lb_listener_rule" "notes_app_preview_rule" {
 
   action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.frontend_green_tg.arn
+    target_group_arn = aws_lb_target_group.frontend_blue_tg.arn
   }
 
   condition {

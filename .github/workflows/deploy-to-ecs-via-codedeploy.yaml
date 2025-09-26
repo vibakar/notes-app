@@ -37,7 +37,7 @@ jobs:
         run: |
           sleep 300  #5 minutes
 
-  Update-test-listener:
+  Update-preview-listener-rule:
     runs-on: ubuntu-latest
     needs: deploy
     steps:
@@ -75,15 +75,21 @@ jobs:
             --output text)
           echo "GREEN_TG_ARN: ${GREEN_TG_ARN}"
 
-          LISTENER_ARN=$(aws elbv2 describe-listeners \
+          PROD_LISTENER_ARN=$(aws elbv2 describe-listeners \
             --load-balancer-arn "${ALB_ARN}" \
             --query "Listeners[?Port==\`80\`].ListenerArn" \
             --output text)
-          echo "LISTENER_ARN: ${LISTENER_ARN}"
+          echo "PROD_LISTENER_ARN: ${PROD_LISTENER_ARN}"
+
+          PREVIEW_LISTENER_ARN=$(aws elbv2 describe-listeners \
+            --load-balancer-arn "${ALB_ARN}" \
+            --query "Listeners[?Port==\`9000\`].ListenerArn" \
+            --output text)
+          echo "PREVIEW_LISTENER_ARN: ${PREVIEW_LISTENER_ARN}"
 
           # Determine which TG is currently attached to the prod listener rule
           CURRENT_PROD_RULE_TG_ARN=$(aws elbv2 describe-rules \
-            --listener-arn "${LISTENER_ARN}" \
+            --listener-arn "${PROD_LISTENER_ARN}" \
             --query "Rules[?Priority=='100'].Actions[0].TargetGroupArn | [0]" \
             --output text)
 
@@ -96,13 +102,7 @@ jobs:
           fi
           echo "PREVIEW_TG: ${PREVIEW_TG}"
 
-          PREVIEW_LISTENER_RULE_ARN=$(aws elbv2 describe-rules \
-          --listener-arn "${LISTENER_ARN}" \
-          --query "Rules[?Priority=='101'].RuleArn" \
-          --output text)
-          echo "PREVIEW_LISTENER_RULE_ARN: ${PREVIEW_LISTENER_RULE_ARN}"
-
-          echo "Update preview listener rule target group to -> ${PREVIEW_TG}"
-          aws elbv2 modify-rule \
-          --rule-arn ${PREVIEW_LISTENER_RULE_ARN} \
-          --actions Type=forward,TargetGroupArn="${PREVIEW_TG}"
+          echo "Update preview listener arn target group to -> ${PREVIEW_TG}"
+          aws elbv2 modify-listener \
+            --listener-arn "${PREVIEW_LISTENER_ARN}" \
+            --default-actions Type=forward,TargetGroupArn="${PREVIEW_TG}"

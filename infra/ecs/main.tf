@@ -255,30 +255,47 @@ resource "aws_lb_listener_rule" "notes_app_prod_rule" {
   }
 }
 
-resource "aws_lb_listener_rule" "notes_app_preview_rule" {
-  listener_arn = aws_lb_listener.frontend.arn
-  priority     = 101
+# resource "aws_lb_listener_rule" "notes_app_preview_rule" {
+#   listener_arn = aws_lb_listener.frontend.arn
+#   priority     = 101
 
-  action {
+#   action {
+#     type             = "forward"
+#     target_group_arn = aws_lb_target_group.frontend_blue_tg.arn
+#   }
+
+#   condition {
+#     host_header {
+#       values = ["preview-notes-app.vibakar.com"]
+#     }
+#   }
+
+#   condition {
+#     path_pattern {
+#       values = ["/*"]
+#     }
+#   }
+
+#   lifecycle {
+#     ignore_changes = [
+#       action
+#     ]
+#   }
+# }
+
+resource "aws_lb_listener" "preview" {
+  load_balancer_arn = aws_lb.app_alb.arn
+  port              = 9000
+  protocol          = "HTTP"
+
+  default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.frontend_blue_tg.arn
-  }
-
-  condition {
-    host_header {
-      values = ["preview-notes-app.vibakar.com"]
-    }
-  }
-
-  condition {
-    path_pattern {
-      values = ["/*"]
-    }
+    target_group_arn = aws_lb_target_group.frontend_blue_tg
   }
 
   lifecycle {
     ignore_changes = [
-      action
+      default_action
     ]
   }
 }

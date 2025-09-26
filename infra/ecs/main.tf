@@ -290,7 +290,7 @@ resource "aws_lb_listener" "preview" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.frontend_blue_tg
+    target_group_arn = aws_lb_target_group.frontend_blue_tg.arn
   }
 
   lifecycle {
